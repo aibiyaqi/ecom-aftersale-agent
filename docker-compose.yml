@@ -1,0 +1,49 @@
+services:
+  app:
+    build:
+      context: ./ecom_backend
+    image: ecom-aftersale:2.0.0
+    container_name: ecom-aftersale
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
+    environment:
+      # 默认 SQLite（容器内 /data 持久化）；切 MySQL 见 README
+      DATABASE_URL: ${DATABASE_URL:-sqlite:////data/orders.db}
+      APP_ENV: production
+    volumes:
+      - ecom_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:5000/healthz', timeout=3).status == 200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # 需要 MySQL 时：docker compose --profile mysql up -d
+  # 并在 .env 里设置 MYSQL_ROOT_PASSWORD / MYSQL_PASSWORD / DATABASE_URL
+  mysql:
+    image: mysql:8.4
+    container_name: ecom-mysql
+    profiles: ["mysql"]
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?请在 .env 设置 MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ecom
+      MYSQL_USER: ecom
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?请在 .env 设置 MYSQL_PASSWORD}
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci"]
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  ecom_data:
+  mysql_data:

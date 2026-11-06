@@ -1,0 +1,80 @@
+# 生产编排：app 不暴露公网端口，只经 Caddy 反代 + 自动 HTTPS
+#
+# 使用：
+#   cp .env.example .env && 编辑 .env（至少 DOMAIN / ADMIN_TOKEN / SERVICE_TOKEN）
+#   docker compose -f docker-compose.prod.yml up -d --build
+#
+# 镜像可来自 GHCR：APP_IMAGE=ghcr.io/aibiyaqi/ecom-aftersale-agent:v2.0.0
+services:
+  app:
+    image: ${APP_IMAGE:-ecom-aftersale:local}
+    build:
+      context: ./ecom_backend
+    container_name: ecom-app
+    env_file:
+      - .env
+    environment:
+      APP_ENV: production
+      DATABASE_URL: ${DATABASE_URL:-sqlite:////data/orders.db}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    volumes:
+      - ecom_data:/data
+    expose:
+      - "5000"
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 512m
+    cpus: 1.0
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:5000/healthz', timeout=3).status == 200 else 1)"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - ecom
+
+  caddy:
+    image: caddy:2.8-alpine
+    container_name: ecom-caddy
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      DOMAIN: ${DOMAIN:?请在 .env 设置 DOMAIN（例如 aftersale.example.com）}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - ecom
+
+volumes:
+  ecom_data:
+  caddy_data:
+  caddy_config:
+
+networks:
+  ecom:
+    driver: bridge

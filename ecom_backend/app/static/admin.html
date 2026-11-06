@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>售后后台管理</title>
+    <style>
+        body { font-family: -apple-system, "Segoe UI", Arial, sans-serif; max-width: 1200px; margin: 20px auto; padding: 0 20px; color: #222; }
+        h2 { margin-bottom: 12px; }
+        .toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 10px 0; }
+        .tab-btn { padding: 8px 16px; cursor: pointer; background: #eee; border: 1px solid #ddd; border-radius: 4px; }
+        .tab-btn.active { background: #007bff; color: #fff; border-color: #007bff; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+        th, td { border: 1px solid #ddd; padding: 6px 8px; text-align: left; vertical-align: top; }
+        th { background: #f2f2f2; white-space: nowrap; }
+        td.reply { max-width: 320px; white-space: pre-wrap; word-break: break-word; }
+        input, select { padding: 5px 8px; border: 1px solid #ccc; border-radius: 4px; }
+        button { padding: 6px 12px; border: 1px solid #007bff; background: #007bff; color: #fff; border-radius: 4px; cursor: pointer; }
+        button.secondary { background: #fff; color: #007bff; }
+        button:disabled { opacity: .5; cursor: not-allowed; }
+        #login { border: 1px solid #ddd; border-radius: 8px; padding: 16px; margin: 24px 0; background: #fafafa; }
+        #login input { width: 320px; }
+        .hint { color: #666; font-size: 13px; }
+        .error { color: #c00; }
+        .pager { display: flex; gap: 8px; align-items: center; margin: 10px 0; }
+        .badge { display: inline-block; padding: 1px 6px; border-radius: 10px; background: #eef; font-size: 12px; }
+        dialog { border: 1px solid #ccc; border-radius: 8px; padding: 16px; max-width: 640px; }
+    </style>
+</head>
+<body>
+    <h2>📊 售后处理记录后台</h2>
+
+    <div id="login">
+        <strong>管理端需要访问令牌</strong>
+        <div class="hint">令牌来自服务端 .env 的 ADMIN_TOKEN，仅保存在本标签页 sessionStorage。</div>
+        <div class="toolbar">
+            <input id="token-input" type="password" placeholder="请输入 ADMIN_TOKEN" autocomplete="off">
+            <button id="token-save">进入后台</button>
+            <button id="token-clear" class="secondary">清除令牌</button>
+        </div>
+        <div id="login-error" class="error"></div>
+    </div>
+
+    <div id="panel" hidden>
+        <div class="toolbar">
+            <button class="tab-btn active" data-tab="chat">对话记录</button>
+            <button class="tab-btn" data-tab="ticket">工单管理</button>
+            <span class="hint" id="status-line"></span>
+        </div>
+
+        <section id="chat-tab" class="tab-content active">
+            <div class="toolbar">
+                <select id="chat-intent">
+                    <option value="">全部意图</option>
+                    <option>查订单</option><option>查物流</option><option>退货退款</option>
+                    <option>投诉</option><option>转人工</option><option>未识别</option><option>未知</option>
+                </select>
+                <select id="chat-manual">
+                    <option value="">全部</option><option value="1">已转人工</option><option value="0">未转人工</option>
+                </select>
+                <input id="chat-keyword" placeholder="搜索内容/订单号" maxlength="50">
+                <button id="chat-search">查询</button>
+            </div>
+            <table>
+                <thead><tr><th>ID</th><th>提问</th><th>意图</th><th>订单号</th><th>AI回复</th><th>转人工</th><th>工单号</th><th>时间</th></tr></thead>
+                <tbody id="chat-table"></tbody>
+            </table>
+            <div class="pager">
+                <button id="chat-prev" class="secondary">上一页</button>
+                <span id="chat-page-info"></span>
+                <button id="chat-next" class="secondary">下一页</button>
+            </div>
+        </section>
+
+        <section id="ticket-tab" class="tab-content">
+            <div class="toolbar">
+                <select id="ticket-status">
+                    <option value="">全部状态</option>
+                    <option>待处理</option><option>处理中</option><option>已完成</option><option>已关闭</option>
+                </select>
+                <input id="ticket-keyword" placeholder="搜索诉求/工单号" maxlength="50">
+                <input id="operator-name" placeholder="客服名（认领用）" maxlength="50" style="width:150px">
+                <button id="ticket-search">查询</button>
+            </div>
+            <table>
+                <thead><tr><th>工单号</th><th>订单号</th><th>用户诉求</th><th>风险类型</th><th>来源</th><th>负责人</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead>
+                <tbody id="ticket-table"></tbody>
+            </table>
+            <div class="pager">
+                <button id="ticket-prev" class="secondary">上一页</button>
+                <span id="ticket-page-info"></span>
+                <button id="ticket-next" class="secondary">下一页</button>
+            </div>
+        </section>
+    </div>
+
+    <dialog id="events-dialog">
+        <h3 style="margin-top:0">工单操作记录</h3>
+        <div id="events-body"></div>
+        <div class="toolbar"><button id="events-close" class="secondary">关闭</button></div>
+    </dialog>
+
+    <script>
+        const TOKEN_KEY = 'ecom_admin_token';
+        const state = { chatPage: 1, chatPages: 1, ticketPage: 1, ticketPages: 1 };
+        let adminToken = sessionStorage.getItem(TOKEN_KEY) || '';
+
+        const $ = (id) => document.getElementById(id);
+
+        // 所有用户输入一律走 textContent，杜绝后台存储型 XSS
+        function cell(text, className) {
+            const td = document.createElement('td');
+            if (className) td.className = className;
+            td.textContent = text === null || text === undefined || text === '' ? '-' : String(text);
+            return td;
+        }
+
+        async function api(path, options = {}) {
+            const headers = Object.assign(
+                { 'Content-Type': 'application/json', 'X-Admin-Token': adminToken },
+                options.headers || {}
+            );
+            const resp = await fetch(path, Object.assign({}, options, { headers }));
+            if (resp.status === 401) {
+                adminToken = '';
+                sessionStorage.removeItem(TOKEN_KEY);
+                showLogin('令牌无效或已过期，请重新输入');
+                throw new Error('unauthorized');
+            }
+            const data = await resp.json().catch(() => ({}));
+            if (!resp.ok) {
+                throw new Error(data.msg || `请求失败（HTTP ${resp.status}）`);
+            }
+            return data;
+        }
+
+        function showLogin(message) {
+            $('panel').hidden = true;
+            $('login').hidden = false;
+            $('login-error').textContent = message || '';
+        }
+
+        function showPanel() {
+            $('login').hidden = true;
+            $('panel').hidden = false;
+            loadChats();
+            loadTickets();
+        }
+
+        $('token-save').addEventListener('click', async () => {
+            const value = $('token-input').value.trim();
+            if (!value) { $('login-error').textContent = '请输入令牌'; return; }
+            adminToken = value;
+            sessionStorage.setItem(TOKEN_KEY, value);
+            try {
+                await api('/api/chat_list?page=1&size=1');
+                $('login-error').textContent = '';
+                showPanel();
+            } catch (err) {
+                if (err.message !== 'unauthorized') $('login-error').textContent = err.message;
+            }
+        });
+        $('token-clear').addEventListener('click', () => {
+            adminToken = '';
+            sessionStorage.removeItem(TOKEN_KEY);
+            showLogin('');
+        });
+
+        // ---------- 对话记录 ----------
+        async function loadChats() {
+            const params = new URLSearchParams({ page: state.chatPage, size: 20 });
+            const intent = $('chat-intent').value;
+            const manual = $('chat-manual').value;
+            const keyword = $('chat-keyword').value.trim();
+            if (intent) params.set('intent', intent);
+            if (manual !== '') params.set('is_manual', manual);
+            if (keyword) params.set('keyword', keyword);
+
+            try {
+                const data = await api('/api/chat_list?' + params.toString());
+                state.chatPages = data.pages || 1;
+                const tbody = $('chat-table');
+                tbody.replaceChildren();
+                for (const row of data.list) {
+                    const tr = document.createElement('tr');
+                    tr.append(
+                        cell(row.id),
+                        cell(row.user_text),
+                        cell(row.intent),
+                        cell(row.order_no),
+                        cell(row.ai_reply, 'reply'),
+                        cell(row.is_manual ? '是' : '否'),
+                        cell(row.ticket_id),
+                        cell(row.create_time)
+                    );
+                    tbody.appendChild(tr);
+                }
+                $('chat-page-info').textContent = `第 ${data.page} / ${state.chatPages} 页，共 ${data.total} 条`;
+                $('chat-prev').disabled = state.chatPage <= 1;
+                $('chat-next').disabled = state.chatPage >= state.chatPages;
+            } catch (err) {
+                if (err.message !== 'unauthorized') $('status-line').textContent = err.message;
+            }
+        }
+
+        // ---------- 工单 ----------
+        async function loadTickets() {
+            const params = new URLSearchParams({ page: state.ticketPage, size: 20 });
+            const status = $('ticket-status').value;
+            const keyword = $('ticket-keyword').value.trim();
+            if (status) params.set('status', status);
+            if (keyword) params.set('keyword', keyword);
+
+            try {
+                const data = await api('/api/ticket_list?' + params.toString());
+                state.ticketPages = data.pages || 1;
+                const tbody = $('ticket-table');
+                tbody.replaceChildren();
+                for (const row of data.list) {
+                    const tr = document.createElement('tr');
+                    tr.append(
+                        cell(row.ticket_id),
+                        cell(row.order_no),
+                        cell(row.user_text, 'reply'),
+                        cell(row.risk_type),
+                        cell(row.source),
+                        cell(row.assignee || '未认领'),
+                        statusCell(row),
+                        cell(row.create_time),
+                        actionCell(row)
+                    );
+                    tbody.appendChild(tr);
+                }
+                $('ticket-page-info').textContent = `第 ${data.page} / ${state.ticketPages} 页，共 ${data.total} 条`;
+                $('ticket-prev').disabled = state.ticketPage <= 1;
+                $('ticket-next').disabled = state.ticketPage >= state.ticketPages;
+            } catch (err) {
+                if (err.message !== 'unauthorized') $('status-line').textContent = err.message;
+            }
+        }
+
+        function statusCell(row) {
+            const td = document.createElement('td');
+            const select = document.createElement('select');
+            for (const status of ['待处理', '处理中', '已完成', '已关闭']) {
+                const option = document.createElement('option');
+                option.value = status;
+                option.textContent = status;
+                if (status === row.handle_status) option.selected = true;
+                select.appendChild(option);
+            }
+            select.addEventListener('change', async () => {
+                select.disabled = true;
+                try {
+                    await api('/api/ticket_status', {
+                        method: 'PUT',
+                        body: JSON.stringify({ ticket_id: row.ticket_id, status: select.value }),
+                    });
+                    $('status-line').textContent = `工单 ${row.ticket_id} 已更新为 ${select.value}`;
+                } catch (err) {
+                    select.value = row.handle_status;
+                    $('status-line').textContent = err.message;
+                } finally {
+                    select.disabled = false;
+                }
+            });
+            td.appendChild(select);
+            return td;
+        }
+
+        function actionCell(row) {
+            const td = document.createElement('td');
+            const closed = row.handle_status === '已完成' || row.handle_status === '已关闭';
+
+            const eventsButton = document.createElement('button');
+            eventsButton.className = 'secondary';
+            eventsButton.textContent = '操作记录';
+            eventsButton.addEventListener('click', () => showEvents(row.ticket_id));
+            td.appendChild(eventsButton);
+
+            if (!closed) {
+                if (!row.assignee) {
+                    const claimButton = document.createElement('button');
+                    claimButton.textContent = '认领';
+                    claimButton.style.marginLeft = '6px';
+                    claimButton.addEventListener('click', () => claimTicket(row.ticket_id, claimButton));
+                    td.appendChild(claimButton);
+                }
+                const assignButton = document.createElement('button');
+                assignButton.className = 'secondary';
+                assignButton.textContent = '指派';
+                assignButton.style.marginLeft = '6px';
+                assignButton.addEventListener('click', () => assignTicket(row.ticket_id));
+                td.appendChild(assignButton);
+            }
+            return td;
+        }
+
+        function operatorName() {
+            return ($('operator-name').value || 'admin').trim();
+        }
+
+        async function claimTicket(ticketId, button) {
+            button.disabled = true;
+            try {
+                await api('/api/ticket_claim', {
+                    method: 'POST',
+                    headers: { 'X-Operator': operatorName() },
+                    body: JSON.stringify({ ticket_id: ticketId }),
+                });
+                $('status-line').textContent = `工单 ${ticketId} 已由 ${operatorName()} 认领`;
+                await loadTickets();
+            } catch (err) {
+                button.disabled = false;
+                if (err.message !== 'unauthorized') $('status-line').textContent = err.message;
+            }
+        }
+
+        async function assignTicket(ticketId) {
+            const who = (prompt('指派给哪位客服？') || '').trim();
+            if (!who) return;
+            try {
+                await api('/api/ticket_assign', {
+                    method: 'POST',
+                    headers: { 'X-Operator': operatorName() },
+                    body: JSON.stringify({ ticket_id: ticketId, assignee: who }),
+                });
+                $('status-line').textContent = `工单 ${ticketId} 已指派给 ${who}`;
+                await loadTickets();
+            } catch (err) {
+                if (err.message !== 'unauthorized') $('status-line').textContent = err.message;
+            }
+        }
+
+        async function showEvents(ticketId) {
+            try {
+                const data = await api('/api/ticket_events?ticket_id=' + encodeURIComponent(ticketId));
+                const body = $('events-body');
+                body.replaceChildren();
+                if (!data.list.length) {
+                    body.textContent = '暂无操作记录';
+                } else {
+                    const list = document.createElement('ul');
+                    for (const event of data.list) {
+                        const item = document.createElement('li');
+                        item.textContent = `${event.create_time} ${event.operator || '-'}：${event.from_status || '-'} → ${event.to_status || '-'}${event.note ? '（' + event.note + '）' : ''}`;
+                        list.appendChild(item);
+                    }
+                    body.appendChild(list);
+                }
+                $('events-dialog').showModal();
+            } catch (err) {
+                $('status-line').textContent = err.message;
+            }
+        }
+
+        $('events-close').addEventListener('click', () => $('events-dialog').close());
+
+        // ---------- 交互 ----------
+        document.querySelectorAll('.tab-btn').forEach((button) => {
+            button.addEventListener('click', () => {
+                document.querySelectorAll('.tab-content').forEach((el) => el.classList.remove('active'));
+                document.querySelectorAll('.tab-btn').forEach((el) => el.classList.remove('active'));
+                $(button.dataset.tab + '-tab').classList.add('active');
+                button.classList.add('active');
+                if (button.dataset.tab === 'chat') loadChats(); else loadTickets();
+            });
+        });
+
+        $('chat-search').addEventListener('click', () => { state.chatPage = 1; loadChats(); });
+        $('chat-prev').addEventListener('click', () => { if (state.chatPage > 1) { state.chatPage--; loadChats(); } });
+        $('chat-next').addEventListener('click', () => { if (state.chatPage < state.chatPages) { state.chatPage++; loadChats(); } });
+        $('ticket-search').addEventListener('click', () => { state.ticketPage = 1; loadTickets(); });
+        $('ticket-prev').addEventListener('click', () => { if (state.ticketPage > 1) { state.ticketPage--; loadTickets(); } });
+        $('ticket-next').addEventListener('click', () => { if (state.ticketPage < state.ticketPages) { state.ticketPage++; loadTickets(); } });
+
+        const savedOperator = sessionStorage.getItem('ecom_operator_name');
+        if (savedOperator) $('operator-name').value = savedOperator;
+        $('operator-name').addEventListener('change', () => {
+            sessionStorage.setItem('ecom_operator_name', operatorName());
+        });
+
+        if (adminToken) {
+            showPanel();
+        } else {
+            showLogin('');
+        }
+    </script>
+</body>
+</html>

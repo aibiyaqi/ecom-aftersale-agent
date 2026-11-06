@@ -1,0 +1,57 @@
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.venv/
+venv/
+env/
+
+# ===== 环境变量 / 密钥 =====
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+*.jks
+*.p12
+
+# ===== 数据库（含演示手机号、对话内容，不入库）=====
+*.db
+*.db-shm
+*.db-wal
+*.db-journal
+*.sqlite
+*.sqlite3
+orders.db*
+
+# ===== Dify 导出 / 备份 =====
+# .ifpkg 含完整工作流、数据集 ID 与历史 ngrok 域名；旧版 DSL 备份同理
+*.ifpkg
+dify_app_dsl.v1.backup.yml
+
+# ===== 测试产物 =====
+.pytest_cache/
+.pytest_tmp/
+pytest-cache-files-*/
+.coverage
+htmlcov/
+
+# ===== 编辑器 / 系统 =====
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# ===== 日志 =====
+*.log
+
+# ===== 备份 / 部署产物 =====
+backups/
+.current_tag
+.ruff_cache/

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>智能售后客服</title>
+    <style>
+        body { font-family: -apple-system, "Segoe UI", Arial, sans-serif; max-width: 640px; margin: 20px auto; padding: 0 16px; }
+        #chat-box { border: 1px solid #ddd; height: 440px; overflow-y: auto; padding: 10px; background: #f9f9f9; border-radius: 8px; }
+        .msg { margin: 8px 0; padding: 8px 12px; border-radius: 12px; max-width: 80%; white-space: pre-wrap; word-break: break-word; }
+        .user { background: #007bff; color: white; }
+        .bot { background: #e9ecef; color: #333; }
+        .flex { display: flex; flex-direction: column; }
+        .input-area { display: flex; margin-top: 12px; gap: 8px; }
+        #input { flex: 1; padding: 10px; border-radius: 20px; border: 1px solid #ccc; }
+        button { padding: 10px 20px; border-radius: 20px; border: none; background: #007bff; color: white; cursor: pointer; }
+        button:disabled { background: #aaa; cursor: not-allowed; }
+        .btn-manual { background: #dc3545; margin-top: 6px; font-size: 14px; padding: 6px 12px; }
+        .btn-manual:hover:not(:disabled) { background: #c82333; }
+        .manual-hint { color: #dc3545; font-size: 13px; margin-top: 4px; font-weight: bold; }
+        .error-tip { color: #c00; font-size: 13px; margin-top: 6px; }
+    </style>
+</head>
+<body>
+    <h2>🤖 订单售后智能助手</h2>
+    <div id="chat-box" class="flex"></div>
+    <div class="input-area">
+        <input id="input" placeholder="例如：查订单 OD2026001（也可只发手机号）" maxlength="1000" />
+        <button id="send">发送</button>
+    </div>
+    <div id="error-tip" class="error-tip"></div>
+
+    <script>
+        const input = document.getElementById('input');
+        const sendButton = document.getElementById('send');
+        const errorTip = document.getElementById('error-tip');
+        let sending = false;
+
+        // ===== 会话隔离：浏览器本地生成/持久化 session_id =====
+        function getSessionId() {
+            let sid = localStorage.getItem('ecom_chat_session_id');
+            if (!sid) {
+                sid = 'SID-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+                localStorage.setItem('ecom_chat_session_id', sid);
+            }
+            return sid;
+        }
+
+        // ===== 单条消息 ID：双击/重试时后端幂等，不会重复建单 =====
+        function newMessageId() {
+            if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+            return 'MSG-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 12);
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            appendMsg('bot', '您好！我是智能售后助手 🤖\n\n您可以查询订单、物流、退款，也可以申请售后。\n\n💡 例如：\n• 「查订单 OD2026001」— 查看订单详情\n• 「我的快递到哪了」— 查询物流\n• 「我要退货」— 提交退货申请\n• 「转人工」— 转接人工客服');
+        });
+
+        async function sendMsg(textOverride) {
+            if (sending) return;
+            const text = (textOverride || input.value).trim();
+            if (!text) return;
+            if (!textOverride) input.value = '';
+            errorTip.textContent = '';
+            appendMsg('user', text);
+            setSending(true);
+            try {
+                const resp = await fetch('/api/send_msg', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_text: text,
+                        session_id: getSessionId(),
+                        client_msg_id: newMessageId(),
+                    }),
+                });
+                const data = await resp.json().catch(() => ({}));
+                if (!resp.ok) {
+                    appendMsg('bot', data.msg || `服务异常（HTTP ${resp.status}），请稍后重试。`);
+                    return;
+                }
+                appendMsg('bot', data.reply || '抱歉，暂时没有生成回复，请换个说法再试。', data);
+            } catch (err) {
+                appendMsg('bot', '网络异常，请检查网络后重试。');
+            } finally {
+                setSending(false);
+            }
+        }
+
+        function setSending(value) {
+            sending = value;
+            sendButton.disabled = value;
+            sendButton.textContent = value ? '发送中…' : '发送';
+        }
+
+        function appendMsg(role, text, data) {
+            const box = document.getElementById('chat-box');
+            const wrapper = document.createElement('div');
+            wrapper.style.display = 'flex';
+            wrapper.style.flexDirection = 'column';
+            wrapper.style.alignItems = role === 'user' ? 'flex-end' : 'flex-start';
+            wrapper.style.margin = '4px 0';
+
+            const bubble = document.createElement('div');
+            bubble.className = `msg ${role === 'user' ? 'user' : 'bot'}`;
+            bubble.textContent = text;
+            wrapper.appendChild(bubble);
+
+            if (role === 'bot' && data && data.is_manual && data.ticket_id) {
+                const hint = document.createElement('div');
+                hint.className = 'manual-hint';
+                hint.textContent = `📋 工单编号：${data.ticket_id}`;
+                wrapper.appendChild(hint);
+
+                const button = document.createElement('button');
+                button.className = 'btn-manual';
+                button.textContent = '👤 确认转人工客服';
+                button.addEventListener('click', async () => {
+                    button.disabled = true;
+                    button.textContent = '⏳ 转接中…';
+                    await sendMsg('确认转人工');
+                    button.textContent = '✅ 已转人工客服';
+                });
+                wrapper.appendChild(button);
+            }
+
+            box.appendChild(wrapper);
+            box.scrollTop = box.scrollHeight;
+        }
+
+        sendButton.addEventListener('click', () => sendMsg());
+        input.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') sendMsg();
+        });
+    </script>
+</body>
+</html>

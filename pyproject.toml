@@ -1,0 +1,8 @@
+[tool.ruff]
+target-version = "py310"
+line-length = 120
+extend-exclude = ["__pycache__", ".pytest_tmp", "build", "dist"]
+
+[tool.ruff.lint]
+# 只启用"一定会挂"的规则：语法错误、未定义名称、未使用变量等由 CI 兜底
+select = ["E9", "F63", "F7", "F82"]

@@ -1,0 +1,1328 @@
+app:
+  description: 一个订单售后业务流程，用 Dify 承担意图识别、规则判断、自动回复和人工流转。
+  icon: 🤖
+  icon_background: '#FFEAD5'
+  icon_type: emoji
+  mode: advanced-chat
+  name: 电商智能订单售后处理系统
+  use_icon_as_answer_icon: false
+dependencies:
+- current_identifier: null
+  type: marketplace
+  value:
+    marketplace_plugin_unique_identifier: langgenius/tongyi:0.2.4@72bdf0d70a10b1b9f64746ccd1bd792397598f4536872b310e77532af02ad6a6
+    version: null
+kind: app
+version: 0.6.0
+workflow:
+  conversation_variables: []
+  environment_variables:
+  - description: 后端服务公网地址（不含结尾斜杠），例如 https://api.example.com
+    id: b49e847ed69445cf9aebc3a8473c1d9a
+    name: BACKEND_BASE_URL
+    selector:
+    - env
+    - BACKEND_BASE_URL
+    value: 'https://your-domain.example.com'
+    value_type: string
+  - description: 与后端 .env 的 SERVICE_TOKEN 一致，用于回调接口鉴权
+    id: 7b26b5b7f61e4e3e820e05a580d70baf
+    name: SERVICE_TOKEN
+    selector:
+    - env
+    - SERVICE_TOKEN
+    value: '请替换为SERVICE_TOKEN'
+    value_type: string
+
+  features:
+    file_upload:
+      allowed_file_extensions:
+      - .JPG
+      - .JPEG
+      - .PNG
+      - .GIF
+      - .WEBP
+      - .SVG
+      allowed_file_types:
+      - image
+      allowed_file_upload_methods:
+      - local_file
+      - remote_url
+      enabled: false
+      fileUploadConfig:
+        attachment_image_file_size_limit: 2
+        audio_file_size_limit: 50
+        batch_count_limit: 5
+        file_size_limit: 15
+        file_upload_limit: 50
+        image_file_batch_limit: 10
+        image_file_size_limit: 10
+        single_chunk_attachment_limit: 10
+        video_file_size_limit: 100
+        workflow_file_upload_limit: 10
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods:
+        - local_file
+        - remote_url
+      number_limits: 3
+    opening_statement: 您好，我是公司工单处理助手，账号/网络故障/设备问题都可以问我，请问我有什么能帮到您的？
+    retriever_resource:
+      enabled: true
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions: []
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
+  graph:
+    edges:
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: parameter-extractor
+        targetType: code
+      id: 1778390805959-source-1778393127707-target
+      selected: false
+      source: '1778390805959'
+      sourceHandle: source
+      target: '1778393127707'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: code
+        targetType: question-classifier
+      id: 1778393127707-source-1778391417798-target
+      selected: false
+      source: '1778393127707'
+      sourceHandle: source
+      target: '1778391417798'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: question-classifier
+        targetType: llm
+      id: 1778391417798-1778391911266-17783920490890-target
+      selected: false
+      source: '1778391417798'
+      sourceHandle: '1778391911266'
+      target: '17783920490890'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: knowledge-retrieval
+        targetType: llm
+      id: 1778393667777-source-llm-target
+      selected: false
+      source: '1778393667777'
+      sourceHandle: source
+      target: llm
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: llm
+        targetType: answer
+      id: llm-source-answer-target
+      selected: false
+      source: llm
+      sourceHandle: source
+      target: answer
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: llm
+        targetType: answer
+      id: 17783920520730-source-answer-target
+      selected: false
+      source: '17783920520730'
+      sourceHandle: source
+      target: answer
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: llm
+        targetType: answer
+      id: 17783920510410-source-answer-target
+      selected: false
+      source: '17783920510410'
+      sourceHandle: source
+      target: answer
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: llm
+        targetType: answer
+      id: 17785591504200-source-17785599973550-target
+      selected: false
+      source: '17785591504200'
+      sourceHandle: source
+      target: '17785599973550'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: question-classifier
+        targetType: llm
+      id: 1778391417798-1778560141200-17785591504200-target
+      selected: false
+      source: '1778391417798'
+      sourceHandle: '1778560141200'
+      target: '17785591504200'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: http-request
+        targetType: knowledge-retrieval
+      id: 1783571984499-source-1783572880485-target
+      selected: false
+      source: '1783571984499'
+      sourceHandle: source
+      target: '1783572880485'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: http-request
+        targetType: knowledge-retrieval
+      id: 1783571992677-source-1783572884914-target
+      selected: false
+      source: '1783571992677'
+      sourceHandle: source
+      target: '1783572884914'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: knowledge-retrieval
+        targetType: llm
+      id: 1783572880485-source-17783920520730-target
+      selected: false
+      source: '1783572880485'
+      sourceHandle: source
+      target: '17783920520730'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: knowledge-retrieval
+        targetType: llm
+      id: 1783572884914-source-17783920510410-target
+      selected: false
+      source: '1783572884914'
+      sourceHandle: source
+      target: '17783920510410'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: http-request
+        targetType: knowledge-retrieval
+      id: 1783571850971-source-1778393667777-target
+      source: '1783571850971'
+      sourceHandle: source
+      target: '1778393667777'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: llm
+        targetType: code
+      id: 17783920490890-source-1783742581524-target
+      source: '17783920490890'
+      sourceHandle: source
+      target: '1783742581524'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: code
+        targetType: http-request
+      id: 1783742581524-source-1783573499869-target
+      source: '1783742581524'
+      sourceHandle: source
+      target: '1783573499869'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: code
+        targetType: http-request
+      id: 1783744768040-source-1783571992677-target
+      source: '1783744768040'
+      sourceHandle: source
+      target: '1783571992677'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: question-classifier
+        targetType: code
+      id: 1778391417798-1778391904388-1783744768040-target
+      source: '1778391417798'
+      sourceHandle: '1778391904388'
+      target: '1783744768040'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: question-classifier
+        targetType: http-request
+      id: 1778391417798-1-1783571850971-target
+      selected: false
+      source: '1778391417798'
+      sourceHandle: '1'
+      target: '1783571850971'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: question-classifier
+        targetType: http-request
+      id: 1778391417798-1778391897875-1783571984499-target
+      source: '1778391417798'
+      sourceHandle: '1778391897875'
+      target: '1783571984499'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: start
+        targetType: parameter-extractor
+      id: 1778387081153-source-1778390805959-target
+      source: '1778387081153'
+      sourceHandle: source
+      target: '1778390805959'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInIteration: false
+        isInLoop: false
+        sourceType: http-request
+        targetType: answer
+      id: 1783573499869-source-1778481758327-target
+      selected: false
+      source: '1783573499869'
+      sourceHandle: source
+      target: '1778481758327'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    nodes:
+    - data:
+        selected: false
+        title: 用户输入
+        type: start
+        variables: []
+      height: 72
+      id: '1778387081153'
+      position:
+        x: 531.0313141178763
+        y: 23.58535663364492
+      positionAbsolute:
+        x: 531.0313141178763
+        y: 23.58535663364492
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 242
+    - data:
+        context:
+          enabled: true
+          variable_selector:
+          - '1778393667777'
+          - result
+        memory:
+          query_prompt_template: '{{#sys.query#}}
+
+            '
+          role_prefix:
+            assistant: ''
+            user: ''
+          window:
+            enabled: true
+            size: 10
+        model:
+          completion_params:
+            max_tokens: 80
+            repetition_penalty: 1.1
+            temperature: 0.6
+            top_k: 2
+            top_p: 0.8
+          mode: chat
+          name: qwen-plus
+          provider: langgenius/tongyi/tongyi
+        prompt_template:
+        - id: b96375fd-5990-40d7-a3f6-d1d91188ba77
+          role: system
+          text: '你是电商售后客服助手，专门处理用户查询订单发货状态的问题。
+
+            需要结合【实时订单数据】+【售后知识库规则】，生成简洁、标准、统一口径的回复，不要冗余话术。
+
+
+            订单实时数据：{{#1783571850971.body#}}
+
+            售后知识库规则：{{#context#}}
+
+            用户原始咨询问题：{{#sys.query#}}
+
+
+            要求：
+
+            1. 优先展示订单真实发货、物流、支付状态；
+
+            2. 若订单待发货，告知预计发货时效；
+
+            3. 严格遵循售后知识库内的官方规则，不编造额外信息；
+
+            4. 语气礼貌简洁，回复控制在三行以内。'
+        selected: false
+        structured_output_enabled: false
+        title: LLM_"查询订单发货状态"
+        type: llm
+        vision:
+          enabled: false
+      height: 87
+      id: llm
+      position:
+        x: 3018.3831657646165
+        y: -178.65170600663015
+      positionAbsolute:
+        x: 3018.3831657646165
+        y: -178.65170600663015
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        answer: '{{#llm.text#}}
+
+          {{#17783920520730.text#}}
+
+          {{#17783920510410.text#}}'
+        selected: false
+        title: 直接回复-订单
+        type: answer
+        variables: []
+      height: 140
+      id: answer
+      position:
+        x: 3479.3274256191053
+        y: -6.709363349851223
+      positionAbsolute:
+        x: 3479.3274256191053
+        y: -6.709363349851223
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        instruction: "你是电商售后信息提取助手，从用户消息中提取结构化信息。需要结合对话上下文判断用户意图。\n\n【订单号提取规则】\n-\
+          \ 订单号格式：OD 开头 + 7位数字，例如 OD2026001、OD2026004\n- 从用户输入中**精确提取**订单号字符串\n- 如果用户输入包含多个数字，优先提取\
+          \ OD 开头的\n- 没有 OD 开头的编号，则提取 7 位以上纯数字\n- 如果确实没有订单号，返回空字符串 \"\"\n\n对话历史】\n\
+          {{conversation_history}}\n\n【当前用户输入】\n{{query}}\n\n请结合对话历史理解用户的真实意图：\n-\
+          \ 如果用户之前说了订单号，本轮没重复，请继续使用上一轮的订单号；\n- 如果用户本轮说「退货」「退款」「不要了」，即使上一轮在查订单，也要把\
+          \ ticket_type 改为「售后投诉/异常问题」；\n- 如果用户本轮说「物流」「到哪了」，ticket_type 改为「查询物流进度」；\n\
+          \n\n【特别注意】\n- 即使上一轮在查订单，只要本轮出现“退货”等关键词，立即切换意图为“售后投诉/异常问题”\n- 提取订单号时，优先从当前输入提取；如果当前输入没有，尝试从对话历史中提取\n\
+          \n请严格按以下 JSON 格式输出：\n{\n  \"ticket_type\": \"查询订单发货状态/查询物流进度/查询退款进度/售后投诉异常问题/闲聊\"\
+          ,\n  \"order_id\": \"提取到的订单号，没有则为空\",\n  \"urgency\": \"高/中/低\",\n  \"description\"\
+          : \"用户问题原文\"\n}"
+        memory:
+          query_prompt_template: '{{#sys.query#}}
+
+
+            {{#sys.files#}}'
+          role_prefix:
+            assistant: ''
+            user: ''
+          window:
+            enabled: true
+            size: 50
+        model:
+          completion_params:
+            temperature: 0.7
+          mode: chat
+          name: qwen-plus
+          provider: langgenius/tongyi/tongyi
+        parameters:
+        - description: 查询订单发货状态、查询物流进度、查询退款进度、售后投诉/异常问题、闲聊
+          name: ticket_type
+          required: false
+          type: string
+        - description: 订单发货紧急程度，可选值：高、中、低
+          name: urgency
+          required: false
+          type: string
+        - description: 用户问题的详细描述，原文若无则从消息推断
+          name: description
+          required: false
+          type: string
+        - description: 从用户提问中提取订单号，格式 OD 开头编号，无订单号返回空字符串
+          name: order_id
+          required: false
+          type: string
+        - description: 3-5对话历史（conversation_history） 或 记忆（Memory）；    用于意图识别
+          name: conversation_history
+          required: false
+          type: string
+        query:
+        - sys
+        - query
+        reasoning_mode: prompt
+        selected: false
+        title: 参数提取器
+        type: parameter-extractor
+        vision:
+          configs:
+            detail: high
+            variable_selector:
+            - sys
+            - files
+          enabled: true
+      height: 87
+      id: '1778390805959'
+      position:
+        x: 861.7618270667115
+        y: 29.5
+      positionAbsolute:
+        x: 861.7618270667115
+        y: 29.5
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        classes:
+        - id: '1'
+          name: '{{#1778393127707.ticket_type#}}=="查询订单发货状态"
+
+            '
+        - id: '1778391897875'
+          name: '{{#1778393127707.ticket_type#}}=="查询物流进度"'
+        - id: '1778391904388'
+          name: '{{#1778393127707.ticket_type#}}=="查询退款进度"'
+        - id: '1778391911266'
+          name: '{{#1778393127707.ticket_type#}}== "售后投诉 / 异常问题"'
+        - id: '1778560141200'
+          name: '{{#1778393127707.ticket_type#}}=="闲聊"'
+        instructions: ''
+        model:
+          completion_params:
+            temperature: 0.7
+          mode: chat
+          name: qwen-plus
+          provider: langgenius/tongyi/tongyi
+        query_variable_selector:
+        - sys
+        - query
+        selected: false
+        title: 问题分类器
+        type: question-classifier
+        vision:
+          enabled: false
+      height: 318
+      id: '1778391417798'
+      position:
+        x: 1465.556245761893
+        y: 29.5
+      positionAbsolute:
+        x: 1465.556245761893
+        y: 29.5
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        context:
+          enabled: false
+          variable_selector: []
+        isInIteration: false
+        isInLoop: false
+        memory:
+          query_prompt_template: '{{#sys.query#}}
+
+
+            {{#sys.files#}}
+
+            {{#1778393127707.description#}}
+
+            {{#1778393127707.urgency#}}'
+          role_prefix:
+            assistant: ''
+            user: ''
+          window:
+            enabled: true
+            size: 10
+        model:
+          completion_params:
+            max_tokens: 1500
+            repetition_penalty: 1.1
+            temperature: 0.7
+            top_k: 2
+            top_p: 0.8
+          mode: chat
+          name: qwen-plus
+          provider: langgenius/tongyi/tongyi
+        prompt_template:
+        - id: b96375fd-5990-40d7-a3f6-d1d91188ba77
+          role: system
+          text: '你是电商售后客服助手，用户当前问题无法自动查询处理，需要转人工提交售后工单。
+
+            工单信息：
+
+            用户问题：{{#1778393127707.description#}}
+
+            紧急程度：{{#1778393127707.urgency#}}
+
+
+            回复内容：
+
+            您好，您的售后问题已收到，暂时无法自动查询处理，已为您提交人工售后工单。
+
+            售后专员将在3小时内跟进，处理完毕后第一时间通知您。
+
+            感谢您的理解！'
+        selected: false
+        structured_output_enabled: false
+        title: LLM_通用转人工回复
+        type: llm
+        vision:
+          enabled: false
+      height: 87
+      id: '17783920490890'
+      position:
+        x: 1900.6108496950608
+        y: 397.7563872194226
+      positionAbsolute:
+        x: 1900.6108496950608
+        y: 397.7563872194226
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        context:
+          enabled: true
+          variable_selector:
+          - '1783572884914'
+          - result
+        isInIteration: false
+        isInLoop: false
+        memory:
+          query_prompt_template: '{{#sys.query#}}
+
+
+            '
+          role_prefix:
+            assistant: ''
+            user: ''
+          window:
+            enabled: true
+            size: 10
+        model:
+          completion_params:
+            max_tokens: 1500
+            repetition_penalty: 1.1
+            temperature: 0.7
+            top_k: 2
+            top_p: 0.8
+          mode: chat
+          name: qwen-plus
+          provider: langgenius/tongyi/tongyi
+        prompt_template:
+        - id: b96375fd-5990-40d7-a3f6-d1d91188ba77
+          role: system
+          text: '你是电商售后客服助手，专门处理用户查询退款进度的问题。
+
+            结合【实时订单退款数据】+【售后退款知识库规则】生成简洁标准回复。
+
+
+            订单实时数据：{{#1783571992677.body#}}
+
+            售后知识库规则：{{#context#}}
+
+            用户原始咨询问题：{{#sys.query#}}
+
+
+            要求：
+
+            1. 清晰说明退款审核状态、预计到账时效；
+
+            2. 遇到退款金额异常、审核驳回时提示转人工渠道；
+
+            3. 严格遵循售后退款官方规则作答，不编造时效；
+
+            4. 话术简短礼貌，回复控制在三行以内。'
+        selected: false
+        structured_output_enabled: false
+        title: LLM_"查询退款进度"
+        type: llm
+        vision:
+          enabled: false
+      height: 87
+      id: '17783920510410'
+      position:
+        x: 3018.3831657646165
+        y: 189.8015150506555
+      positionAbsolute:
+        x: 3018.3831657646165
+        y: 189.8015150506555
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        context:
+          enabled: true
+          variable_selector:
+          - '1783572880485'
+          - result
+        isInIteration: false
+        isInLoop: false
+        memory:
+          query_prompt_template: '{{#sys.query#}}
+
+
+            {{#sys.files#}}
+
+            {{#1778390805959.description#}}{{#1778393127707.description#}}
+
+            {{#1778393127707.urgency#}}'
+          role_prefix:
+            assistant: ''
+            user: ''
+          window:
+            enabled: true
+            size: 10
+        model:
+          completion_params:
+            max_tokens: 1500
+            repetition_penalty: 1.1
+            temperature: 0.7
+            top_k: 2
+            top_p: 0.8
+          mode: chat
+          name: qwen-plus
+          provider: langgenius/tongyi/tongyi
+        prompt_template:
+        - id: b96375fd-5990-40d7-a3f6-d1d91188ba77
+          role: system
+          text: '你是电商售后客服助手，专门处理用户查询物流进度的问题。
+
+            结合【实时订单物流数据】和【售后物流知识库规则】生成简洁标准回复。
+
+
+            订单实时数据：{{#1783571984499.body#}}
+
+            售后知识库规则：{{#context#}}
+
+            用户原始咨询问题：{{#sys.query#}}
+
+
+            要求：
+
+            1. 清晰展示物流单号、最新运输节点、滞留时长；
+
+            2. 若物流停滞超7天，主动提示可申请售后人工介入；
+
+            3. 话术统一简短，不编造不存在的物流信息；
+
+            4. 全程礼貌，回复控制在3行内。'
+        selected: false
+        structured_output_enabled: false
+        title: LLM_查询物流进度"
+        type: llm
+        vision:
+          enabled: false
+      height: 87
+      id: '17783920520730'
+      position:
+        x: 3018.3831657646165
+        y: -16.01808375278216
+      positionAbsolute:
+        x: 3018.3831657646165
+        y: -16.01808375278216
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        code: "def main(ticket_type: str, urgency: str, description: str, order_id:\
+          \ str) -> dict:\n    tag = \"\"\n    if ticket_type == \"查询订单发货状态\":\n \
+          \       tag = \"发货查询\"\n    elif ticket_type == \"查询物流进度\":\n        tag\
+          \ = \"物流查询\"\n    elif ticket_type == \"查询退款进度\":\n        tag = \"退款查询\"\
+          \n    elif ticket_type == \"售后投诉 / 异常问题\":\n        tag = \"人工投诉\"\n   \
+          \ elif ticket_type == \"闲聊\":\n        tag = \"闲聊互动\"\n    else:\n     \
+          \   tag = \"未知类型\"\n    return {\n        \"ticket_type\": ticket_type,\n\
+          \        \"urgency\": urgency,\n        \"description\": description,\n\
+          \        \"tag\": tag,\n        \"order_id\": order_id\n    }"
+        code_language: python3
+        outputs:
+          description:
+            children: null
+            type: string
+          order_id:
+            children: null
+            type: string
+          tag:
+            children: null
+            type: string
+          ticket_type:
+            children: null
+            type: string
+          urgency:
+            children: null
+            type: string
+        selected: false
+        title: 数据清洗
+        type: code
+        variables:
+        - value_selector:
+          - '1778390805959'
+          - ticket_type
+          value_type: string
+          variable: ticket_type
+        - value_selector:
+          - '1778390805959'
+          - urgency
+          value_type: string
+          variable: urgency
+        - value_selector:
+          - '1778390805959'
+          - description
+          value_type: string
+          variable: description
+        - value_selector:
+          - '1778390805959'
+          - order_id
+          value_type: string
+          variable: order_id
+      height: 51
+      id: '1778393127707'
+      position:
+        x: 1174.2063016540255
+        y: 29.5
+      positionAbsolute:
+        x: 1174.2063016540255
+        y: 29.5
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        dataset_ids:
+        - M4JP+/o200tZ9aq+jkzYRrkF8MZ6rVCPTGQTPwLIFy5XDbCfB5QYenTxqaLMb1W/
+        multiple_retrieval_config:
+          reranking_enable: true
+          reranking_mode: reranking_model
+          reranking_model:
+            model: qwen3-rerank
+            provider: langgenius/tongyi/tongyi
+          score_threshold: null
+          top_k: 3
+        query_attachment_selector: []
+        query_variable_selector:
+        - '1778393127707'
+        - description
+        retrieval_mode: multiple
+        selected: false
+        title: 知识检索-订单发货状态
+        type: knowledge-retrieval
+      height: 89
+      id: '1778393667777'
+      position:
+        x: 2613.353117267157
+        y: -178.65170600663015
+      positionAbsolute:
+        x: 2613.353117267157
+        y: -178.65170600663015
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        answer: '您好！您的问题「{{#sys.query#}}」已提交售后人工处理。
+
+          工单信息：
+
+          - 售后类型：{{#1778391417798.class_name#}}
+
+          - 预计处理时效：3小时内
+
+          我们会尽快安排售后专员跟进，处理完成后将第一时间通知您。'
+        selected: false
+        title: 直接回复2-人工
+        type: answer
+        variables: []
+      height: 201
+      id: '1778481758327'
+      position:
+        x: 3489.048612011082
+        y: 305.543309172372
+      positionAbsolute:
+        x: 3489.048612011082
+        y: 305.543309172372
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        context:
+          enabled: false
+          variable_selector: []
+        isInIteration: false
+        isInLoop: false
+        memory:
+          query_prompt_template: '{{#sys.query#}}
+
+            {{#1778393127707.description#}}
+
+            {{#1778393127707.urgency#}}'
+          role_prefix:
+            assistant: ''
+            user: ''
+          window:
+            enabled: true
+            size: 10
+        model:
+          completion_params:
+            max_tokens: 1500
+            repetition_penalty: 1.1
+            temperature: 0.6
+            top_k: 2
+            top_p: 0.8
+          mode: chat
+          name: qwen-plus
+          provider: langgenius/tongyi/tongyi
+        prompt_template:
+        - id: b96375fd-5990-40d7-a3f6-d1d91188ba77
+          role: system
+          text: '你是电商售后闲聊客服助手，当用户提出和订单发货、物流、退款无关的闲聊话题时，友好轻松回应。
+
+            约束规则：
+
+            1. 禁止人身攻击、歧视、违法、广告、泄露隐私相关内容；
+
+            2. 不编造店铺、订单、售后相关虚假信息；
+
+            3. 遇到不懂的话题礼貌委婉转移，话术参考：“这个我不太了解哦，我们可以聊聊订单相关问题或者轻松的小事~”；
+
+            4. 语气亲切简短，不长篇大论。'
+        selected: false
+        structured_output_enabled: false
+        title: LLM_闲聊模式
+        type: llm
+        vision:
+          enabled: false
+      height: 87
+      id: '17785591504200'
+      position:
+        x: 1912.3729068625244
+        y: 573.6965524267033
+      positionAbsolute:
+        x: 1912.3729068625244
+        y: 573.6965524267033
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        answer: '{{#17785591504200.text#}}'
+        isInIteration: false
+        isInLoop: false
+        selected: false
+        title: 直接回复-闲聊
+        type: answer
+        variables: []
+      height: 102
+      id: '17785599973550'
+      position:
+        x: 2212.3729068625244
+        y: 573.6965524267033
+      positionAbsolute:
+        x: 2212.3729068625244
+        y: 573.6965524267033
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        authorization:
+          config: null
+          type: no-auth
+        body:
+          data:
+          - id: key-value-244
+            key: ''
+            type: text
+            value: '{"order_no": "{{#1778390805959.order_id#}}"}'
+          type: json
+        headers: |-
+          Content-Type:application/json
+          X-Service-Token:{{#env.SERVICE_TOKEN#}}
+        method: post
+        params: ''
+        retry_config:
+          max_retries: 2
+          retry_enabled: true
+          retry_interval: 500
+        selected: false
+        ssl_verify: false
+        timeout:
+          connect: 5
+          max_connect_timeout: 5
+          max_read_timeout: 10
+          max_write_timeout: 10
+          read: 10
+          write: 10
+        title: HTTP 请求-查询订单发货状态
+        type: http-request
+        url: '{{#env.BACKEND_BASE_URL#}}/api/get_order'
+        variables: []
+      height: 152
+      id: '1783571850971'
+      position:
+        x: 2205.937001763349
+        y: -178.65170600663015
+      positionAbsolute:
+        x: 2205.937001763349
+        y: -178.65170600663015
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        authorization:
+          config: null
+          type: no-auth
+        body:
+          data:
+          - id: key-value-843
+            key: ''
+            type: text
+            value: '{"order_no": "{{#1778390805959.order_id#}}"}'
+          type: json
+        headers: |-
+          Content-Type:application/json
+          X-Service-Token:{{#env.SERVICE_TOKEN#}}
+        method: post
+        params: ''
+        retry_config:
+          max_retries: 2
+          retry_enabled: true
+          retry_interval: 500
+        selected: false
+        ssl_verify: false
+        timeout:
+          connect: 5
+          max_connect_timeout: 5
+          max_read_timeout: 10
+          max_write_timeout: 10
+          read: 10
+          write: 10
+        title: HTTP 请求 2-查询物流进度
+        type: http-request
+        url: '{{#env.BACKEND_BASE_URL#}}/api/get_logistics'
+        variables: []
+      height: 152
+      id: '1783571984499'
+      position:
+        x: 2212.3729068625244
+        y: -6.709363349851223
+      positionAbsolute:
+        x: 2212.3729068625244
+        y: -6.709363349851223
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        authorization:
+          config: null
+          type: no-auth
+        body:
+          data:
+          - id: key-value-472
+            key: ''
+            type: text
+            value: '{"order_no": "{{#1778390805959.order_id#}}"}'
+          type: json
+        headers: |-
+          Content-Type:application/json
+          X-Service-Token:{{#env.SERVICE_TOKEN#}}
+        method: post
+        params: ''
+        retry_config:
+          max_retries: 2
+          retry_enabled: true
+          retry_interval: 500
+        selected: false
+        ssl_verify: false
+        timeout:
+          connect: 5
+          max_connect_timeout: 5
+          max_read_timeout: 10
+          max_write_timeout: 10
+          read: 10
+          write: 10
+        title: HTTP 请求 3-查询退款进度
+        type: http-request
+        url: '{{#env.BACKEND_BASE_URL#}}/api/get_refund'
+        variables: []
+      height: 152
+      id: '1783571992677'
+      position:
+        x: 2205.937001763349
+        y: 198.37396766933517
+      positionAbsolute:
+        x: 2205.937001763349
+        y: 198.37396766933517
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        dataset_ids:
+        - M4JP+/o200tZ9aq+jkzYRrkF8MZ6rVCPTGQTPwLIFy5XDbCfB5QYenTxqaLMb1W/
+        multiple_retrieval_config:
+          reranking_enable: false
+          reranking_mode: reranking_model
+          reranking_model:
+            model: qwen3-rerank
+            provider: langgenius/tongyi/tongyi
+          top_k: 4
+        query_attachment_selector: []
+        query_variable_selector:
+        - '1778387081153'
+        - sys.query
+        retrieval_mode: multiple
+        selected: false
+        title: 知识检索-查询物流进度"
+        type: knowledge-retrieval
+      height: 89
+      id: '1783572880485'
+      position:
+        x: 2606.825020575427
+        y: -16.01808375278216
+      positionAbsolute:
+        x: 2606.825020575427
+        y: -16.01808375278216
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        dataset_ids:
+        - M4JP+/o200tZ9aq+jkzYRrkF8MZ6rVCPTGQTPwLIFy5XDbCfB5QYenTxqaLMb1W/
+        multiple_retrieval_config:
+          reranking_enable: false
+          reranking_mode: reranking_model
+          reranking_model:
+            model: qwen3-rerank
+            provider: langgenius/tongyi/tongyi
+          top_k: 4
+        query_attachment_selector: []
+        query_variable_selector:
+        - '1778387081153'
+        - sys.query
+        retrieval_mode: multiple
+        selected: false
+        title: 知识检索-"查询退款进度"
+        type: knowledge-retrieval
+      height: 89
+      id: '1783572884914'
+      position:
+        x: 2601.3047507744477
+        y: 198.37396766933517
+      positionAbsolute:
+        x: 2601.3047507744477
+        y: 198.37396766933517
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        authorization:
+          config: null
+          type: no-auth
+        body:
+          data:
+          - id: key-value-1128
+            key: ''
+            type: text
+            value: '{{#1783742581524.request_body#}}'
+          type: json
+        headers: |-
+          Content-Type:application/json
+          X-Service-Token:{{#env.SERVICE_TOKEN#}}
+        method: post
+        params: ''
+        retry_config:
+          max_retries: 2
+          retry_enabled: true
+          retry_interval: 500
+        selected: false
+        ssl_verify: false
+        timeout:
+          connect: 5
+          max_connect_timeout: 5
+          max_read_timeout: 10
+          max_write_timeout: 10
+          read: 10
+          write: 10
+        title: HTTP 请求 4-人工
+        type: http-request
+        url: '{{#env.BACKEND_BASE_URL#}}/api/create_ticket'
+        variables: []
+      height: 152
+      id: '1783573499869'
+      position:
+        x: 2601.3047507744477
+        y: 397.7563872194226
+      positionAbsolute:
+        x: 2601.3047507744477
+        y: 397.7563872194226
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        code: "def main(LLM_text: str, order_id: str, ticket_type: str, description:\
+          \ str) -> dict:\n    import json\n    # 构造创建工单的请求体\n    payload = {\n  \
+          \      \"order_no\": order_id,\n        \"user_text\": description,\n  \
+          \      \"risk_reason\": ticket_type\n    }\n    return {\n        \"request_body\"\
+          : json.dumps(payload)\n    }"
+        code_language: python3
+        outputs:
+          request_body:
+            children: null
+            type: string
+        selected: false
+        title: 代码执行 5
+        type: code
+        variables:
+        - value_selector:
+          - '17783920490890'
+          - text
+          value_type: string
+          variable: LLM_text
+        - value_selector:
+          - '1778390805959'
+          - order_id
+          value_type: string
+          variable: order_id
+        - value_selector:
+          - '1778390805959'
+          - ticket_type
+          value_type: string
+          variable: ticket_type
+        - value_selector:
+          - '1778390805959'
+          - description
+          value_type: string
+          variable: description
+      height: 51
+      id: '1783742581524'
+      position:
+        x: 2226.0761673729276
+        y: 406.4833125971704
+      positionAbsolute:
+        x: 2226.0761673729276
+        y: 406.4833125971704
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    - data:
+        code: "def main(arg1: str) -> dict:\n    # 直接构造完整的 JSON 字符串\n    import json\n\
+          \    request_body = json.dumps({\"order_no\": arg1})\n    return {\n   \
+          \     \"request_body\": request_body\n    }"
+        code_language: python3
+        outputs:
+          request_body:
+            children: null
+            type: string
+        selected: false
+        title: 代码执行 4
+        type: code
+        variables:
+        - value_selector:
+          - '1778390805959'
+          - order_id
+          value_type: string
+          variable: arg1
+      height: 51
+      id: '1783744768040'
+      position:
+        x: 1900.6108496950608
+        y: 198.37396766933517
+      positionAbsolute:
+        x: 1900.6108496950608
+        y: 198.37396766933517
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 241
+    viewport:
+      x: -98.49120080039347
+      y: 218.91385618900574
+      zoom: 0.6628945037797094
+  rag_pipeline_variables: []

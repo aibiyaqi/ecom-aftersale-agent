@@ -1,0 +1,20 @@
+# 由 docker-compose.prod.yml 注入的 DOMAIN 自动生成站点与证书
+{$DOMAIN} {
+	encode zstd gzip
+
+	# 基础安全响应头
+	header {
+		X-Content-Type-Options nosniff
+		X-Frame-Options DENY
+		Referrer-Policy no-referrer
+		-Server
+	}
+
+	# 管理后台与 API 同源，由应用自身令牌鉴权
+	reverse_proxy app:5000
+
+	log {
+		output stdout
+		format json
+	}
+}
