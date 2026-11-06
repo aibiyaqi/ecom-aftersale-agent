@@ -275,18 +275,22 @@ bash deploy/backup.sh
 
 ### 版本管理
 
-本地仓库已初始化：`main` 上有首个提交，并打了 `v2.0.0` 标签（52 个文件，无 `.env` / 数据库 / Dify 导出包）。远端已配置为
-`https://github.com/aibiyaqi/ecom-aftersale-agent.git`。
+仓库已推送到 GitHub（私有）：<https://github.com/aibiyaqi/ecom-aftersale-agent>
+
+- `main`：52 个文件，无 `.env` / 数据库 / Dify 导出包
+- `v2.0.0`：已发布 Release，镜像 `ghcr.io/aibiyaqi/ecom-aftersale-agent:v2.0.0`
+- 提交作者：`aibiyaqi@users.noreply.github.com`
+
+后续提交：
 
 ```bash
-# 先在 GitHub 创建私有仓库 ecom-aftersale-agent，然后：
-git push -u origin main
-git push origin v2.0.0
+git add -A && git commit -m "feat: ..."
+git push
+# 发版：git tag v2.0.1 && git push origin v2.0.1
 ```
 
-> 本机尚未安装 Git，仓库是用容器内 git 创建的；装上 Git 后即可直接提交。
-> 当前提交作者是 `aibiyaqi@users.noreply.github.com`，想换成自己的邮箱：
-> `git commit --amend --reset-author`。
+> 本机尚未安装 Git，仓库最初由容器内 git 创建；装上 Git 后可直接提交。
+> 想换提交邮箱：`git commit --amend --reset-author`。
 > 后续提交优先用 `scripts/git-init.ps1`（会先跑密钥自检），或直接 `git add/commit`。
 
 上传前自检：`python tools/preflight_secrets.py`；隐私策略见 [SECURITY.md](SECURITY.md)。
